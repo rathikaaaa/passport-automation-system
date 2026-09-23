@@ -1,0 +1,6 @@
+import {createContext,useContext,useEffect,useState} from 'react'; import {api,unwrap} from '../services/api';
+const C=createContext(); export function AuthProvider({children}){const [user,setUser]=useState(()=>{try{return JSON.parse(localStorage.getItem('passport_user'))}catch{return null}}); const [loading,setLoading]=useState(true);
+useEffect(()=>{const t=localStorage.getItem('passport_token'); if(t){api.get('/auth/me').then(r=>setUser(unwrap(r))).catch(()=>{localStorage.clear();setUser(null)}).finally(()=>setLoading(false))}else setLoading(false)},[]);
+const login=async(email,password)=>{const d=unwrap(await api.post('/auth/login',{email,password}));localStorage.setItem('passport_token',d.token);localStorage.setItem('passport_user',JSON.stringify(d.user));setUser(d.user);return d.user};
+const register=async(data)=>{const d=unwrap(await api.post('/auth/register',data));localStorage.setItem('passport_token',d.token);localStorage.setItem('passport_user',JSON.stringify(d.user));setUser(d.user);return d.user};
+const logout=()=>{localStorage.clear();setUser(null)}; return <C.Provider value={{user,loading,login,register,logout,setUser}}>{children}</C.Provider>}; export const useAuth=()=>useContext(C);

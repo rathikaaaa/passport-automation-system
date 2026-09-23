@@ -1,0 +1,97 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Role { APPLICANT ADMIN }
+enum ApplicationStatus { DRAFT SUBMITTED DOCUMENT_VERIFICATION POLICE_VERIFICATION APPROVED DISPATCHED DELIVERED REJECTED }
+enum VerificationStatus { PENDING VERIFIED REJECTED }
+enum PoliceStatus { PENDING IN_PROGRESS VERIFIED REJECTED }
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  password String
+  phone String?
+  dateOfBirth DateTime?
+  gender String?
+  address String?
+  city String?
+  state String?
+  pincode String?
+  role Role @default(APPLICANT)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  applications PassportApplication[]
+  notifications Notification[]
+  auditLogs AuditLog[]
+}
+
+model PassportApplication {
+  id String @id @default(cuid())
+  applicationNumber String @unique
+  userId String
+  passportType String @default("Ordinary")
+  applicationType String @default("Fresh Passport")
+  placeOfBirth String?
+  maritalStatus String?
+  nationality String @default("Indian")
+  employmentType String?
+  status ApplicationStatus @default(DRAFT)
+  submittedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  adminRemarks String?
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  documents Document[]
+  policeVerification PoliceVerification?
+  auditLogs AuditLog[]
+  @@index([userId])
+  @@index([status])
+  @@index([applicationNumber])
+}
+
+model Document {
+  id String @id @default(cuid())
+  applicationId String
+  documentType String
+  fileName String
+  fileUrl String
+  verificationStatus VerificationStatus @default(PENDING)
+  uploadedAt DateTime @default(now())
+  remarks String?
+  application PassportApplication @relation(fields:[applicationId], references:[id], onDelete:Cascade)
+  @@index([applicationId])
+}
+
+model PoliceVerification {
+  id String @id @default(cuid())
+  applicationId String @unique
+  status PoliceStatus @default(PENDING)
+  verificationDate DateTime?
+  officerName String?
+  remarks String?
+  application PassportApplication @relation(fields:[applicationId], references:[id], onDelete:Cascade)
+}
+
+model Notification {
+  id String @id @default(cuid())
+  userId String
+  title String
+  message String
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  @@index([userId, isRead])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  userId String?
+  applicationId String?
+  action String
+  description String
+  createdAt DateTime @default(now())
+  user User? @relation(fields:[userId], references:[id], onDelete:SetNull)
+  application PassportApplication? @relation(fields:[applicationId], references:[id], onDelete:SetNull)
+  @@index([createdAt])
+}
