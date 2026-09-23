@@ -6,10 +6,35 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-enum Role { APPLICANT ADMIN }
-enum ApplicationStatus { DRAFT SUBMITTED DOCUMENT_VERIFICATION POLICE_VERIFICATION APPROVED DISPATCHED DELIVERED REJECTED }
-enum VerificationStatus { PENDING VERIFIED REJECTED }
-enum PoliceStatus { PENDING IN_PROGRESS VERIFIED REJECTED }
+
+enum Role {
+  APPLICANT
+  ADMIN
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  DOCUMENT_VERIFICATION
+  POLICE_VERIFICATION
+  APPROVED
+  DISPATCHED
+  DELIVERED
+  REJECTED
+}
+
+enum VerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum PoliceStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  REJECTED
+}
 
 model User {
   id String @id @default(cuid())
