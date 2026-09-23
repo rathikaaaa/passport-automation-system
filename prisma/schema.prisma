@@ -1,6 +1,11 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
 
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 enum Role { APPLICANT ADMIN }
 enum ApplicationStatus { DRAFT SUBMITTED DOCUMENT_VERIFICATION POLICE_VERIFICATION APPROVED DISPATCHED DELIVERED REJECTED }
 enum VerificationStatus { PENDING VERIFIED REJECTED }
