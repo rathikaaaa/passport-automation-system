@@ -38,4 +38,38 @@ app.get('/api/admin/audit-logs',auth,role('ADMIN'),async(req,res)=>ok(res,await 
 app.get('/api/admin/police', auth, role('ADMIN'), async (req,res) => { const rows = await prisma.policeVerification.findMany({ include: { application: { include: { user: { select: userSelect } } } }, orderBy: { verificationDate: 'desc' } }); ok(res, rows); });
 app.use('/uploads',express.static(uploadDir));
 app.use((req,res)=>err(res,'Route not found',404));
-app.listen(process.env.PORT||5000,()=>console.log(`API running on port ${process.env.PORT||5000}`));
+async function seedDemoUsers(){
+  const users=[
+    {name:'Demo Applicant',email:'applicant@passportdemo.com',password:'Applicant@123',role:'APPLICANT'},
+    {name:'Demo Admin',email:'admin@passportdemo.com',password:'Admin@123',role:'ADMIN'}
+  ];
+
+  for(const u of users){
+    const existing=await prisma.user.findUnique({
+      where:{email:u.email}
+    });
+
+    if(!existing){
+      await prisma.user.create({
+        data:{
+          name:u.name,
+          email:u.email,
+          password:await bcrypt.hash(u.password,10),
+          role:u.role
+        }
+      });
+
+      console.log(`Demo user created: ${u.email}`);
+    }
+  }
+}
+
+seedDemoUsers()
+  .then(()=>app.listen(
+    process.env.PORT||5000,
+    ()=>console.log(`API running on port ${process.env.PORT||5000}`)
+  ))
+  .catch(e=>{
+    console.error('Demo user setup failed:',e);
+    process.exit(1);
+  });
